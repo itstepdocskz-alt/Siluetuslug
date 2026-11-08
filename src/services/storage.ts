@@ -34,7 +34,16 @@ export const storage = {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.CONFIG);
       if (data) {
-        return { ...INITIAL_CONFIG, ...JSON.parse(data) };
+        const parsed = JSON.parse(data);
+        if (parsed.telegramUrl === 'https://t.me/siluet_editor' || !parsed.telegramUrl) {
+          parsed.telegramUrl = INITIAL_CONFIG.telegramUrl;
+        }
+        if (parsed.email === 'work@siluet.studio' || !parsed.email) {
+          parsed.email = INITIAL_CONFIG.email;
+        }
+        const merged = { ...INITIAL_CONFIG, ...parsed };
+        storage.saveConfig(merged);
+        return merged;
       }
     } catch (e) {
       console.warn('Failed to read config from storage, using defaults:', e);

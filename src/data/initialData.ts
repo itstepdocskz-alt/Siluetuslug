@@ -2,8 +2,8 @@ import { Project, SiteConfig } from '../types';
 
 export const INITIAL_CONFIG: SiteConfig = {
   authorName: 'Siluet',
-  telegramUrl: 'https://t.me/siluet_editor',
-  email: 'work@siluet.studio',
+  telegramUrl: 'https://t.me/mmnsrd',
+  email: 'mansurdastanuly111@gmail.com',
   status: 'Открыт к проектам на текущий месяц',
   demoMode: true, // By default demo mode shows the 5 future slots as requested in the brief
   heroVideo: {
