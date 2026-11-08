@@ -1,0 +1,6 @@
+{
+  "name": "Siluet — Видеомонтаж",
+  "description": "Монтаж, который передаёт эмоции. Независимый видеомонтаж YouTube-видео и Reels для блогеров и бизнеса.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
