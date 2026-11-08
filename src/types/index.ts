@@ -41,3 +41,11 @@ export interface ProjectInquiry {
   notes: string;
   status: 'new' | 'in_progress' | 'completed';
 }
+
+export interface AuthUser {
+  email: string;
+  name: string;
+  isAdmin: boolean;
+  loggedInAt: string;
+}
+

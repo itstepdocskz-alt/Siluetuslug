@@ -14,18 +14,22 @@ import { Footer } from './components/Footer';
 import { ProjectModal } from './components/ProjectModal';
 import { InquiryModal } from './components/InquiryModal';
 import { AdminPanel } from './components/AdminPanel';
+import { LoginModal } from './components/LoginModal';
 import { storage } from './services/storage';
+import { authService } from './services/auth';
 import { DEMO_PLACEHOLDER_SLOTS } from './data/initialData';
-import { Project, SiteConfig, ProjectInquiry } from './types';
+import { Project, SiteConfig, ProjectInquiry, AuthUser } from './types';
 
 export default function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [config, setConfig] = useState<SiteConfig>(storage.getConfig());
   const [inquiries, setInquiries] = useState<ProjectInquiry[]>([]);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(authService.getCurrentUser());
   
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [inquiryModalOpen, setInquiryModalOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   // Initialize data from persistent local storage
   useEffect(() => {
@@ -43,12 +47,33 @@ export default function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.shiftKey && (e.key === 'A' || e.key === 'a' || e.key === 'Ф' || e.key === 'ф')) && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
         e.preventDefault();
-        setAdminOpen((prev) => !prev);
+        handleOpenAdmin();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [currentUser]);
+
+  const handleOpenAdmin = () => {
+    if (authService.isAdmin(currentUser)) {
+      setAdminOpen(true);
+    } else {
+      setLoginModalOpen(true);
+    }
+  };
+
+  const handleLoginSuccess = (user: AuthUser) => {
+    setCurrentUser(user);
+    if (user.isAdmin) {
+      setAdminOpen(true);
+    }
+  };
+
+  const handleLogout = () => {
+    authService.logout();
+    setCurrentUser(null);
+    setAdminOpen(false);
+  };
 
   const handleSaveProjects = (newProjects: Project[]) => {
     setProjects(newProjects);
@@ -77,7 +102,7 @@ export default function App() {
       {/* 1. Header (Sticky Top Bar Contract) */}
       <Header
         onOpenInquiry={() => setInquiryModalOpen(true)}
-        onOpenAdmin={() => setAdminOpen(true)}
+        onOpenAdmin={handleOpenAdmin}
         demoMode={config.demoMode}
       />
 
@@ -136,7 +161,7 @@ export default function App() {
       {/* 7. Footer */}
       <Footer
         config={config}
-        onOpenAdmin={() => setAdminOpen(true)}
+        onOpenAdmin={handleOpenAdmin}
       />
 
       {/* Modals & Drawers */}
@@ -162,6 +187,14 @@ export default function App() {
         onSaveConfig={handleSaveConfig}
         onSaveInquiries={handleSaveInquiries}
         onResetData={handleResetData}
+      />
+
+      <LoginModal
+        isOpen={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+        currentUser={currentUser}
+        onLoginSuccess={handleLoginSuccess}
+        onLogout={handleLogout}
       />
     </div>
   );

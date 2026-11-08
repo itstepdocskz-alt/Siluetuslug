@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
-import { SlidersHorizontal, Menu, X, ArrowUpRight } from 'lucide-react';
+import { SlidersHorizontal, Menu, X, ArrowUpRight, ShieldCheck, LogIn } from 'lucide-react';
+import { AuthUser } from '../types';
 
 interface HeaderProps {
   onOpenInquiry: () => void;
   onOpenAdmin: () => void;
+  onOpenLogin: () => void;
+  isAdmin: boolean;
+  currentUser: AuthUser | null;
   demoMode: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenInquiry, onOpenAdmin, demoMode }) => {
+export const Header: React.FC<HeaderProps> = ({
+  onOpenInquiry,
+  onOpenAdmin,
+  onOpenLogin,
+  isAdmin,
+  currentUser,
+  demoMode,
+}) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -71,16 +82,40 @@ export const Header: React.FC<HeaderProps> = ({ onOpenInquiry, onOpenAdmin, demo
           </a>
         </nav>
 
-        {/* Zone 3: 1 Primary Action + Admin Trigger */}
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={onOpenAdmin}
-            className="p-2 text-[#B0B5AD] hover:text-[#D5F45B] hover:bg-[#1E211F] border border-[#363B35] rounded-none transition-colors duration-200"
-            title="Управление портфолио (Админка)"
-            aria-label="Открыть панель управления"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-          </button>
+        {/* Zone 3: 1 Primary Action + Admin/Auth Trigger */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* If logged in as admin, show admin panel button & badge */}
+          {isAdmin ? (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onOpenLogin}
+                className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-mono text-[#D5F45B] bg-[#1E211F] border border-[#363B35] hover:border-[#D5F45B] transition-colors"
+                title="Ваш аккаунт администратора"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-[#D5F45B]" />
+                <span className="max-w-[130px] truncate">{currentUser?.email}</span>
+              </button>
+
+              <button
+                onClick={onOpenAdmin}
+                className="p-2 text-[#141615] bg-[#D5F45B] hover:bg-[#c6e64f] border border-[#D5F45B] rounded-none transition-colors duration-200"
+                title="Панель управления портфолио (Админка)"
+                aria-label="Открыть панель управления"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            /* Regular visitor / non-admin: subtle login affordance */
+            <button
+              onClick={onOpenLogin}
+              className="p-2 text-[#B0B5AD] hover:text-[#F2F1E9] hover:bg-[#1E211F] border border-[#363B35] rounded-none transition-colors duration-200"
+              title="Вход для владельца сайта"
+              aria-label="Войти в аккаунт"
+            >
+              <LogIn className="w-4 h-4" />
+            </button>
+          )}
 
           <button
             onClick={onOpenInquiry}
@@ -146,16 +181,30 @@ export const Header: React.FC<HeaderProps> = ({ onOpenInquiry, onOpenAdmin, demo
               <span>Обсудить проект</span>
               <ArrowUpRight className="w-4 h-4" />
             </button>
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenAdmin();
-              }}
-              className="w-full flex items-center justify-center gap-2 py-2.5 text-xs text-[#B0B5AD] hover:text-[#F2F1E9] border border-[#363B35] rounded-none"
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>Панель управления портфолио</span>
-            </button>
+
+            {isAdmin ? (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAdmin();
+                }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 text-xs text-[#141615] bg-[#D5F45B] hover:bg-[#c6e64f] font-semibold uppercase tracking-wider rounded-none"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <span>Панель управления портфолио</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenLogin();
+                }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 text-xs text-[#B0B5AD] hover:text-[#F2F1E9] border border-[#363B35] rounded-none"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Вход для владельца</span>
+              </button>
+            )}
           </div>
         </div>
       )}
