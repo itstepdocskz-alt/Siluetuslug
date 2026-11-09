@@ -1,94 +1,115 @@
 import { AuthUser } from '../types';
 
 export const ADMIN_EMAIL = 'mansurdastanuly111@gmail.com';
-const AUTH_STORAGE_KEY = 'siluet_auth_session_v1';
-const PASSKEY_STORAGE_KEY = 'siluet_admin_passkey_v1';
-const DEFAULT_PASSKEY = 'siluet2026';
+const TOKEN_STORAGE_KEY = 'siluet_auth_token_v1';
+const USER_STORAGE_KEY = 'siluet_auth_user_v1';
 
 export const authService = {
   getAdminEmail(): string {
     return ADMIN_EMAIL;
   },
 
+  getToken(): string | null {
+    try {
+      return localStorage.getItem(TOKEN_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  },
+
   getCurrentUser(): AuthUser | null {
     try {
-      const data = localStorage.getItem(AUTH_STORAGE_KEY);
+      const data = localStorage.getItem(USER_STORAGE_KEY);
       if (data) {
-        const parsed: AuthUser = JSON.parse(data);
-        // Double check isAdmin logic with the authorized admin email
-        parsed.isAdmin = parsed.email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase();
-        return parsed;
+        const user: AuthUser = JSON.parse(data);
+        user.isAdmin = user.email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase();
+        return user;
       }
     } catch (e) {
-      console.warn('Failed to parse auth user session:', e);
+      console.warn('Failed to parse current user session:', e);
     }
     return null;
   },
 
-  getStoredPasskey(): string {
-    return localStorage.getItem(PASSKEY_STORAGE_KEY) || DEFAULT_PASSKEY;
-  },
+  async login(email: string, passwordAttempt: string): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password: passwordAttempt }),
+      });
 
-  setStoredPasskey(newPasskey: string): void {
-    localStorage.setItem(PASSKEY_STORAGE_KEY, newPasskey);
-  },
+      const data = await response.json();
 
-  login(email: string, passkey?: string): { success: boolean; user?: AuthUser; error?: string } {
-    const cleanEmail = email.trim().toLowerCase();
-    const isAdminTarget = cleanEmail === ADMIN_EMAIL.toLowerCase();
-
-    if (isAdminTarget) {
-      const requiredPasskey = authService.getStoredPasskey();
-      // Verify passkey if provided, allow default passkeys for convenience
-      if (passkey && passkey !== requiredPasskey && passkey !== '2026' && passkey !== 'admin' && passkey !== DEFAULT_PASSKEY) {
+      if (!response.ok || !data.success) {
         return {
           success: false,
-          error: 'Неверный пароль администратора. Попробуйте пароль по умолчанию: siluet2026',
+          error: data.error || 'Ошибка авторизации. Проверьте введенные данные.',
         };
       }
 
-      const adminUser: AuthUser = {
-        email: cleanEmail,
-        name: 'Мансур / Siluet',
-        isAdmin: true,
-        loggedInAt: new Date().toISOString(),
-      };
-
-      try {
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(adminUser));
-      } catch (e) {
-        console.error('Failed to save auth session:', e);
+      if (data.token) {
+        localStorage.setItem(TOKEN_STORAGE_KEY, data.token);
+      }
+      if (data.user) {
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
       }
 
-      return { success: true, user: adminUser };
+      return {
+        success: true,
+        user: data.user,
+      };
+    } catch (err) {
+      console.error('Server login request failed:', err);
+      return {
+        success: false,
+        error: 'Не удалось связаться с сервером авторизации. Попробуйте еще раз.',
+      };
     }
-
-    // Any other account: regular viewer without admin permissions
-    const regularUser: AuthUser = {
-      email: cleanEmail,
-      name: cleanEmail.split('@')[0],
-      isAdmin: false,
-      loggedInAt: new Date().toISOString(),
-    };
-
-    try {
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(regularUser));
-    } catch (e) {
-      console.error('Failed to save auth session:', e);
-    }
-
-    return { 
-      success: true, 
-      user: regularUser,
-      error: 'Вы вошли как обычный пользователь без прав администратора. Доступ к админ-панели имеет только mansurdastanuly111@gmail.com.',
-    };
   },
 
-  logout(): void {
+  async verifySession(): Promise<AuthUser | null> {
+    const token = authService.getToken();
+    if (!token) return null;
+
     try {
-      localStorage.removeItem(AUTH_STORAGE_KEY);
+      const res = await fetch('/api/auth/session', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.authenticated && data.user) {
+          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
+          return data.user;
+        }
+      }
     } catch (e) {
-      console.error('Failed to clear auth session:', e);
+      console.warn('Session verification error:', e);
+    }
+
+    // Invalid session
+    authService.logout();
+    return null;
+  },
+
+  async logout(): Promise<void> {
+    const token = authService.getToken();
+    try {
+      if (token) {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+    } catch (e) {
+      console.warn('Logout server notification failed:', e);
+    } finally {
+      try {
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+        localStorage.removeItem(USER_STORAGE_KEY);
+      } catch (err) {
+        console.error('Failed to clear local token:', err);
+      }
     }
   },
 

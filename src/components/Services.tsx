@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowUpRight } from 'lucide-react';
+import { motion } from 'motion/react';
 
 interface ServicesProps {
   onOpenInquiry: () => void;
@@ -38,13 +39,13 @@ export const Services: React.FC<ServicesProps> = ({ onOpenInquiry }) => {
   ];
 
   return (
-    <section id="services" className="py-24 border-b border-[#363B35]">
+    <section id="services" className="py-24 md:py-32 border-b border-[#2e332d] relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
         <div className="mb-16">
           <div className="flex items-center gap-2 mb-3">
-            <span className="w-2 h-2 bg-[#D5F45B] rounded-none inline-block" />
+            <span className="w-2.5 h-[1.5px] bg-[#D5F45B]" />
             <span className="text-xs font-mono tracking-widest uppercase text-[#B0B5AD]">
               02 / НАПРАВЛЕНИЯ РАБОТЫ
             </span>
@@ -55,61 +56,65 @@ export const Services: React.FC<ServicesProps> = ({ onOpenInquiry }) => {
         </div>
 
         {/* Typographic Lines with Numbers and Hairline Dividers */}
-        <div className="divide-y divide-[#363B35] border-y border-[#363B35]">
-          {serviceList.map((service) => (
-            <div
+        <div className="divide-y divide-[#2e332d] border-y border-[#2e332d]">
+          {serviceList.map((service, index) => (
+            <motion.div
               key={service.number}
-              className="py-10 group hover:bg-[#1E211F]/50 transition-colors duration-200"
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.08 }}
+              className="py-12 group hover:bg-[#161817]/60 transition-all duration-300 px-4 -mx-4"
             >
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
                 
                 {/* Number & Title */}
                 <div className="lg:col-span-5 flex items-start gap-6">
-                  <span className="font-mono text-lg sm:text-xl text-[#D5F45B] font-bold tabular-nums">
+                  <span className="font-mono text-2xl text-[#D5F45B] font-bold tabular-nums group-hover:scale-110 transition-transform duration-200">
                     {service.number}
                   </span>
                   <div>
                     <h3 className="font-display font-bold text-xl sm:text-2xl text-[#F2F1E9] group-hover:text-[#D5F45B] transition-colors duration-200">
                       {service.title}
                     </h3>
-                    <div className="mt-2 text-xs font-mono text-[#B0B5AD]">
+                    <div className="mt-2 text-xs font-mono text-[#D5F45B]/80">
                       {service.output}
                     </div>
                   </div>
                 </div>
 
-                {/* Description */}
+                {/* Description & Features */}
                 <div className="lg:col-span-5">
-                  <p className="text-sm sm:text-base text-[#B0B5AD] leading-relaxed">
+                  <p className="text-sm sm:text-base text-[#B0B5AD] leading-relaxed mb-4">
                     {service.description}
                   </p>
                   
                   {/* Clean unboxed features */}
-                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#F2F1E9]/80">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#F2F1E9]/80 font-mono">
                     {service.features.map((feat, i) => (
                       <React.Fragment key={feat}>
-                        <span>{feat}</span>
+                        <span className="hover:text-[#D5F45B] transition-colors">{feat}</span>
                         {i < service.features.length - 1 && (
-                          <span className="text-[#363B35]" aria-hidden="true">·</span>
+                          <span className="text-[#363B35]">·</span>
                         )}
                       </React.Fragment>
                     ))}
                   </div>
                 </div>
 
-                {/* Action CTA */}
+                {/* Action CTA with Glow */}
                 <div className="lg:col-span-2 flex lg:justify-end items-center">
                   <button
                     onClick={onOpenInquiry}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#F2F1E9] group-hover:text-[#D5F45B] transition-colors duration-180"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#F2F1E9] bg-[#121413] border border-[#2e332d] group-hover:border-[#D5F45B] group-hover:text-[#D5F45B] transition-all duration-200 shadow-sm group-hover:shadow-[0_0_15px_rgba(213,244,91,0.2)]"
                   >
                     <span>Заказать</span>
-                    <ArrowUpRight className="w-4 h-4 text-[#D5F45B]" />
+                    <ArrowUpRight className="w-3.5 h-3.5 text-[#D5F45B] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   </button>
                 </div>
 
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 

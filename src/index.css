@@ -2,12 +2,13 @@
 
 @layer base {
   :root {
-    --bg-main: #141615;
-    --bg-surface: #1E211F;
+    --bg-main: #0d0f0e;
+    --bg-surface: #141615;
     --text-primary: #F2F1E9;
     --text-secondary: #B0B5AD;
     --accent: #D5F45B;
-    --divider: #363B35;
+    --accent-glow: rgba(213, 244, 91, 0.3);
+    --divider: #2e332d;
   }
 
   body {
@@ -34,18 +35,24 @@
   }
 }
 
-/* Custom subtle scrollbar */
+/* Custom subtle dark scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #141615;
+  background: #0d0f0e;
 }
 ::-webkit-scrollbar-thumb {
-  background: #363B35;
+  background: #2e332d;
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #B0B5AD;
+  background: #D5F45B;
+}
+
+/* Glowing text selection */
+::selection {
+  background-color: #D5F45B;
+  color: #141615;
 }

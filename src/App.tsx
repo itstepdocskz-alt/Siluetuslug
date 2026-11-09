@@ -15,6 +15,7 @@ import { ProjectModal } from './components/ProjectModal';
 import { InquiryModal } from './components/InquiryModal';
 import { AdminPanel } from './components/AdminPanel';
 import { LoginModal } from './components/LoginModal';
+import { CustomCursor } from './components/CustomCursor';
 import { storage } from './services/storage';
 import { authService } from './services/auth';
 import { DEMO_PLACEHOLDER_SLOTS } from './data/initialData';
@@ -31,7 +32,7 @@ export default function App() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
 
-  // Initialize data from persistent local storage
+  // Initialize data and verify server session
   useEffect(() => {
     const loadedProjects = storage.getProjects();
     const loadedConfig = storage.getConfig();
@@ -40,6 +41,13 @@ export default function App() {
     setProjects(loadedProjects);
     setConfig(loadedConfig);
     setInquiries(loadedInquiries);
+
+    // Verify token with server
+    authService.verifySession().then((user) => {
+      if (user) {
+        setCurrentUser(user);
+      }
+    });
   }, []);
 
   // Keyboard shortcut to toggle admin panel (Shift + A)
@@ -69,8 +77,8 @@ export default function App() {
     }
   };
 
-  const handleLogout = () => {
-    authService.logout();
+  const handleLogout = async () => {
+    await authService.logout();
     setCurrentUser(null);
     setAdminOpen(false);
   };
@@ -98,16 +106,20 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#141615] text-[#F2F1E9] flex flex-col font-sans selection:bg-[#D5F45B] selection:text-[#141615]">
-      {/* 1. Header (Sticky Top Bar Contract) */}
+    <div className="min-h-screen bg-[#0d0f0e] text-[#F2F1E9] flex flex-col font-sans selection:bg-[#D5F45B] selection:text-[#141615] overflow-x-hidden">
+      {/* Interactive Cinematic Spring Cursor (Desktop only, automatically hidden on mobile/touch) */}
+      <CustomCursor />
+
+      {/* 1. Header (Sticky Top Bar with Glow & Motion) */}
       <Header
         onOpenInquiry={() => setInquiryModalOpen(true)}
         onOpenAdmin={handleOpenAdmin}
         demoMode={config.demoMode}
+        currentUser={currentUser}
       />
 
       <main className="flex-1">
-        {/* 2. Hero Section */}
+        {/* 2. Hero Section (Awwwards-level cinematic first screen) */}
         <Hero
           config={config}
           onOpenInquiry={() => setInquiryModalOpen(true)}
@@ -115,7 +127,7 @@ export default function App() {
             if (config.heroVideo.videoUrl) {
               setActiveProject({
                 id: 'hero-showreel',
-                title: 'Siluet Showreel // Главная нарезка',
+                title: 'Siluet Showreel // Главная нарезка работ',
                 format: 'Шоурил / 16:9',
                 aspectRatio: '16:9',
                 role: 'Монтаж, ритм, саунд-дизайн',
@@ -133,7 +145,7 @@ export default function App() {
           }}
         />
 
-        {/* 3. Works Section (Main visual focus) */}
+        {/* 3. Works Section (Main visual focus with layout animations & uncropped 9:16 vertical cards) */}
         <Portfolio
           projects={projects}
           demoPlaceholders={DEMO_PLACEHOLDER_SLOTS}
@@ -151,7 +163,7 @@ export default function App() {
         {/* 5. Process Section (4 sequential steps) */}
         <Process />
 
-        {/* 6. Contact Section (Large phrase & Telegram CTA) */}
+        {/* 6. Contact Section (Huge phrase & Telegram CTA) */}
         <ContactSection
           config={config}
           onOpenInquiry={() => setInquiryModalOpen(true)}
@@ -162,6 +174,7 @@ export default function App() {
       <Footer
         config={config}
         onOpenAdmin={handleOpenAdmin}
+        currentUser={currentUser}
       />
 
       {/* Modals & Drawers */}
@@ -180,6 +193,8 @@ export default function App() {
       <AdminPanel
         isOpen={adminOpen}
         onClose={() => setAdminOpen(false)}
+        currentUser={currentUser}
+        onLogout={handleLogout}
         projects={projects}
         config={config}
         inquiries={inquiries}
